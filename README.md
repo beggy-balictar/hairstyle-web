@@ -1,1 +1,0 @@
-# Hairstyle Web 
