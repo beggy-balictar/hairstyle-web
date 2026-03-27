@@ -1,1 +1,16 @@
-// Placeholder for src/lib/routes.ts
+export const ROUTES = {
+  landing: "/",
+  roleLogin: "/login",
+  customerLogin: "/customer-login",
+  register: "/register",
+  adminDashboard: "/admin/dashboard",
+  adminUsers: "/admin/users",
+  adminHairstyles: "/admin/hairstyles",
+  adminReports: "/admin/reports",
+  adminSettings: "/admin/settings",
+  customerDashboard: "/customer/dashboard",
+  customerAnalyze: "/customer/analyze",
+  customerHistory: "/customer/history",
+  customerFavorites: "/customer/favorites",
+  customerProfile: "/customer/profile",
+};
