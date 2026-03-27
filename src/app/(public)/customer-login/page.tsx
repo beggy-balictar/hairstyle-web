@@ -23,34 +23,15 @@ export default function CustomerLoginPage() {
             <Card className="rounded-[2rem] border-slate-200 shadow-sm">
               <CardHeader className="p-8">
                 <Badge variant="secondary" className="w-fit rounded-full px-3 py-1">Customer sign-in</Badge>
-                <CardTitle className="pt-2 text-3xl tracking-tight">Welcome back</CardTitle>
-                <CardDescription>Use your customer email and password to continue to your dashboard and stored recommendations.</CardDescription>
+                <CardTitle className="pt-2 text-3xl tracking-tight">Login</CardTitle>
+                
               </CardHeader>
               <CardContent className="p-8 pt-2">
                 <CustomerLoginForm />
               </CardContent>
             </Card>
 
-            <Card className="rounded-[2rem] border-slate-200 shadow-sm">
-              <CardHeader className="p-8">
-                <CardTitle className="text-2xl">Customer access rules</CardTitle>
-                <CardDescription>This login screen is intentionally separate from the admin flow and can connect directly to your customer account table and session logic.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 p-8 pt-0 sm:grid-cols-2">
-                <div className="rounded-3xl border border-slate-200 p-5">
-                  <div className="text-sm font-medium">Validation-ready inputs</div>
-                  <div className="mt-1 text-sm text-slate-500">Email format and required-password validation are enforced at the interface level before backend checks.</div>
-                </div>
-                <div className="rounded-3xl border border-slate-200 p-5">
-                  <div className="text-sm font-medium">Auth.js compatible</div>
-                  <div className="mt-1 text-sm text-slate-500">This page is structured for secure session creation, hashed-password verification, and PostgreSQL-backed identity lookup.</div>
-                </div>
-                <div className="rounded-3xl border border-slate-200 p-5 sm:col-span-2">
-                  <div className="text-sm font-medium">Recommended backend behavior</div>
-                  <div className="mt-1 text-sm text-slate-500">Check email existence, verify password hash, create session, redirect to /customer/dashboard, and return clear error states for invalid credentials.</div>
-                </div>
-              </CardContent>
-            </Card>
+            
           </div>
         </div>
       </div>

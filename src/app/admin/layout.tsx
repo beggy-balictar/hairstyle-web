@@ -34,8 +34,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <Shield className="h-5 w-5 text-slate-700" />
               </div>
               <div>
-                <div className="text-sm font-medium">Admin session</div>
-                <div className="text-xs text-slate-500">Role-based access shell</div>
+                <div className="text-sm font-medium">Admin</div>
+                <div className="text-xs text-slate-500"></div>
               </div>
             </div>
             <Button asChild variant="outline" className="w-full rounded-2xl">
@@ -49,10 +49,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="min-w-0">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/90 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
           <div>
-            <div className="text-sm text-slate-500">Role</div>
+            
             <div className="font-semibold">Administrator</div>
           </div>
-          <Badge className="rounded-full px-3 py-1.5">PostgreSQL-ready UI shell</Badge>
+         
         </header>
         <div className="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <div className="flex gap-2 overflow-x-auto">

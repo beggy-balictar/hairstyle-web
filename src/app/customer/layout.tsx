@@ -34,8 +34,8 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
                 <User className="h-5 w-5 text-slate-700" />
               </div>
               <div>
-                <div className="text-sm font-medium">Customer session</div>
-                <div className="text-xs text-slate-500">Profile-ready interface shell</div>
+                <div className="text-sm font-medium">Customer</div>
+                
               </div>
             </div>
             <Button asChild variant="outline" className="w-full rounded-2xl">
@@ -49,10 +49,10 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
       <div className="min-w-0">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/90 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
           <div>
-            <div className="text-sm text-slate-500">Role</div>
+            
             <div className="font-semibold">Customer</div>
           </div>
-          <Badge className="rounded-full px-3 py-1.5">AI pipeline-ready interface</Badge>
+          
         </header>
         <div className="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <div className="flex gap-2 overflow-x-auto">

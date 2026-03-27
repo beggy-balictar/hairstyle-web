@@ -9,7 +9,7 @@ export function StatusCard({ title, subtitle }: { title: string; subtitle: strin
       </CardHeader>
       <CardContent>
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-          This area is ready for live PostgreSQL-backed content.
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. 
         </div>
       </CardContent>
     </Card>

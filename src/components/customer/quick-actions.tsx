@@ -16,8 +16,9 @@ export function QuickActions() {
     <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
       <Card className="rounded-3xl border-slate-200 shadow-sm">
         <CardHeader>
-          <CardTitle>Quick actions</CardTitle>
-          <CardDescription>These actions are connected to browser permissions and future backend flows.</CardDescription>
+          <CardTitle>Actions
+          </CardTitle>
+          
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <Button className="h-14 rounded-2xl" onClick={onScan}><Camera className="mr-2 h-5 w-5" /> Scan face</Button>
@@ -36,17 +37,7 @@ export function QuickActions() {
           <ReportDialog />
         </CardContent>
       </Card>
-      <Card className="rounded-3xl border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle>Permission and action status</CardTitle>
-          <CardDescription>This feedback area confirms browser-level action readiness before backend processing.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-            {permissionMessage || "No scan or upload action has been triggered yet."}
-          </div>
-        </CardContent>
-      </Card>
+      
     </div>
   );
 }

@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input";
 export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
-      <SectionHeader title="User management" description="Manage account records, status, and access rules for all users of the system." />
+      <SectionHeader title="User management" description="" />
       <Card className="rounded-3xl border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>User controls</CardTitle>
-          <CardDescription>Each action below maps to backend endpoints and PostgreSQL record changes.</CardDescription>
+          
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="rounded-3xl border border-slate-200 p-5">
@@ -30,12 +30,12 @@ export default function AdminUsersPage() {
           </div>
           <div className="rounded-3xl border border-slate-200 p-5">
             <div className="font-medium">Inspect account details</div>
-            <p className="mt-2 text-sm text-slate-500">Open profile-level details, recommendation history, and satisfaction records from linked customer tables.</p>
+            
             <Button variant="outline" className="mt-4 rounded-2xl">Open details panel</Button>
           </div>
         </CardContent>
       </Card>
-      <EmptyPanel title="User table ready for PostgreSQL" description="Attach this page to your Prisma user query, customer-profile join, and status-update actions. No sample users are shown here by design." icon={Users} />
+      <EmptyPanel title="User table " description="" icon={Users} />
     </div>
   );
 }

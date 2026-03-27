@@ -25,7 +25,7 @@ export default function RoleLoginPage() {
             <Card className="rounded-[2rem] border-slate-200 shadow-sm">
               <CardHeader className="p-8">
                 <CardTitle className="text-2xl">Role selection</CardTitle>
-                <CardDescription>Choose whether you are signing in as an admin or continuing to the customer authentication path.</CardDescription>
+                <CardDescription>Choose whether you are signing in as an admin or continuing as a customer.</CardDescription>
               </CardHeader>
               <CardContent className="p-8 pt-0">
                 <Tabs defaultValue="admin" className="w-full">
@@ -38,8 +38,8 @@ export default function RoleLoginPage() {
                       <div className="flex items-start gap-3">
                         <Shield className="mt-0.5 h-5 w-5 text-slate-700" />
                         <div>
-                          <div className="font-medium">Admin access flow</div>
-                          <div className="mt-1 text-sm text-slate-500">Admins authenticate here and enter the control dashboard directly after successful sign-in.</div>
+                          <div className="font-medium">Admin Access</div>
+                          <div className="mt-1 text-sm text-slate-500">Securely sign in to manage users, hairstyles, and system data through the admin dashboard.</div>
                         </div>
                       </div>
                     </div>
@@ -50,8 +50,8 @@ export default function RoleLoginPage() {
                       <div className="flex items-start gap-3">
                         <User className="mt-0.5 h-5 w-5 text-slate-700" />
                         <div>
-                          <div className="font-medium">Customer access flow</div>
-                          <div className="mt-1 text-sm text-slate-500">Customers continue to a dedicated sign-in page, where new users can register before entering the dashboard.</div>
+                          <div className="font-medium">Customer Access</div>
+                          <div className="mt-1 text-sm text-slate-500">Sign in or create an account to explore personalized hairstyle recommendations and preview styles on your face.</div>
                         </div>
                       </div>
                     </div>
@@ -63,34 +63,6 @@ export default function RoleLoginPage() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-[2rem] border-slate-200 shadow-sm">
-              <CardHeader className="p-8">
-                <CardTitle className="text-2xl">Authentication routing structure</CardTitle>
-                <CardDescription>Use this page as the first decision gate before sending users into their correct secured area.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-8 pt-0">
-                <div className="space-y-4">
-                  <div className="rounded-3xl border border-slate-200 p-5">
-                    <div className="text-sm font-medium">Admin path</div>
-                    <div className="mt-1 text-sm text-slate-500">Landing -&gt; Role login -&gt; Admin sign-in -&gt; Admin dashboard</div>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 p-5">
-                    <div className="text-sm font-medium">Customer path</div>
-                    <div className="mt-1 text-sm text-slate-500">Landing -&gt; Role login -&gt; Customer sign-in -&gt; Register if needed -&gt; Customer dashboard</div>
-                  </div>
-                  <Alert className="rounded-2xl border-slate-200">
-                    <AlertTitle>Backend integration points</AlertTitle>
-                    <AlertDescription>
-                      Connect admin sign-in to your authentication flow, enforce role-based redirects in middleware, and protect server routes for the admin area.
-                    </AlertDescription>
-                  </Alert>
-                  <div className="rounded-3xl border border-dashed border-slate-200 p-5 text-sm text-slate-500">
-                    <AlertCircle className="mb-3 h-4 w-4 text-slate-700" />
-                    Customer registration should redirect back to the customer login page after a successful account insert and password hash save.
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

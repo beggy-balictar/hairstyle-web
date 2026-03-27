@@ -11,11 +11,11 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="System settings" description="Configure operational controls, visibility rules, and integration settings." />
+      <SectionHeader title="System settings" description="" />
       <Card className="rounded-3xl border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Interface and policy controls</CardTitle>
-          <CardDescription>Use these toggles and inputs as shells for real settings records.</CardDescription>
+          
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="flex items-center justify-between rounded-3xl border border-slate-200 p-5">
