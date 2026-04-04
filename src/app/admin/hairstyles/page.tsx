@@ -10,8 +10,8 @@ export default function AdminHairstylesPage() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Hairstyle management" description="" />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-3xl border-slate-200 shadow-sm">
+      <div className="flex justify-center">
+        <Card className="w-full max-w-3xl rounded-3xl border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle>Add or edit hairstyle entries</CardTitle>
             
@@ -29,7 +29,6 @@ export default function AdminHairstylesPage() {
             </div>
           </CardContent>
         </Card>
-      
       </div>
       <EmptyPanel title="Catalog table" description="all hairstyle" icon={Scissors} />
     </div>
