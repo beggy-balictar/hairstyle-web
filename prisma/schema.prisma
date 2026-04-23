@@ -46,6 +46,7 @@ model User {
   reports           CustomerReport[]
   satisfactions     Satisfaction[]
   auditLogs         AuditLog[]           @relation("AuditActor")
+  pageViews         PageView[]
 
   @@map("users")
 }
@@ -103,6 +104,19 @@ model FaceAnalysis {
   recommendation    Recommendation?
 
   @@map("face_analyses")
+}
+
+model Recommendation {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  faceAnalysisId   String   @unique @map("face_analysis_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  faceAnalysis     FaceAnalysis  @relation(fields: [faceAnalysisId], references: [id], onDelete: Cascade)
+  items            RecommendationItem[]
+
+  @@map("recommendations")
 }
 
 model Hairstyle {
@@ -172,6 +186,19 @@ model CustomerReport {
   user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("customer_reports")
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([path])
+  @@index([createdAt])
+  @@map("page_views")
 }
 
 model AuditLog {

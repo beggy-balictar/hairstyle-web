@@ -12,16 +12,23 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
   background:
     radial-gradient(circle at top, rgba(148, 163, 184, 0.14), transparent 30%),
     linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -67,4 +74,18 @@ textarea {
   100% {
     background-position: 240% 50%;
   }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float-soft {
+  animation: float-soft 5.5s ease-in-out infinite;
 }

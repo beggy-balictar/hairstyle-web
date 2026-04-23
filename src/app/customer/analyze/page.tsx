@@ -1,18 +1,16 @@
-import { Camera } from "lucide-react";
 import { SectionHeader } from "@/components/shared/section-header";
-import { EmptyPanel } from "@/components/shared/empty-panel";
 import { QuickActions } from "@/components/customer/quick-actions";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FaceShapeAnalyzer } from "@/components/customer/face-shape-analyzer";
 
 export default function CustomerAnalyzePage() {
   return (
     <div className="space-y-6">
-      <SectionHeader title="Analyze" description="" />
+      <SectionHeader
+        title="Analyze"
+        description="Capture or upload a portrait for on-device landmark detection. Save results to get personalized style suggestions."
+      />
       <QuickActions />
-      <div className="grid gap-4 lg:grid-cols-2">
-        
-      </div>
-      <EmptyPanel title="preview" description="" icon={Camera} />
+      <FaceShapeAnalyzer />
     </div>
   );
 }

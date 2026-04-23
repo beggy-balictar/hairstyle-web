@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, RefreshCw, Ruler, ScanFace, Sparkles, Upload, Video, Waves, XCircle } from "lucide-react";
+import { Camera, Heart, RefreshCw, Ruler, ScanFace, Sparkles, Upload, Video, Waves, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
@@ -12,6 +12,7 @@ import { classifyHairLengthFromImage } from "@/lib/hair-length-classifier";
 import type { FaceShapeAnalysis } from "@/types/face-shape";
 import type { HairTypeAnalysis } from "@/types/hair-type";
 import type { HairLengthAnalysis } from "@/types/hair-length";
+import { cn } from "@/lib/utils";
 
 const shapeTips: Record<string, string[]> = {
   triangle: ["Add volume on top or around the temples.", "Avoid styles that make the jawline look heavier."],
@@ -30,6 +31,7 @@ const hairTips: Record<string, string[]> = {
 };
 
 const hairLengthTips: Record<string, string[]> = {
+  bald: ["Buzz cuts, skin fades, and polished bald looks keep the silhouette clean.", "If growing hair out, track progress with periodic rescans."],
   short: ["Pixie, crop, or tapered styles will usually follow the existing visible length well.", "Add texture at the crown if you want more apparent volume."],
   medium: ["Layered bobs, lobs, and shoulder-skimming cuts usually suit this range.", "Use internal layers if you want movement without losing too much length."],
   long: ["Long layers help keep length while avoiding heaviness.", "Face-framing sections can keep long hair from overwhelming the face shape."],
@@ -59,11 +61,31 @@ function dataUrlToImage(dataUrl: string) {
   });
 }
 
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
+type RecommendationRow = {
+  id: string;
+  rank: number;
+  score: number | null;
+  reason: string | null;
+  previewImageUrl: string | null;
+  hairstyle: {
+    id: string;
+    name: string;
+    description: string | null;
+    sampleImageUrl: string | null;
+  } | null;
+};
+
 export function FaceShapeAnalyzer() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const captureSourceRef = useRef<"upload" | "camera">("upload");
 
   const [status, setStatus] = useState("Upload a clear front-facing image or use the camera to begin analysis.");
   const [statusTone, setStatusTone] = useState<StatusTone>("idle");
@@ -73,12 +95,72 @@ export function FaceShapeAnalyzer() {
   const [analysis, setAnalysis] = useState<FaceShapeAnalysis | null>(null);
   const [hairAnalysis, setHairAnalysis] = useState<HairTypeAnalysis | null>(null);
   const [hairLengthAnalysis, setHairLengthAnalysis] = useState<HairLengthAnalysis | null>(null);
+  const [recommendations, setRecommendations] = useState<RecommendationRow[] | null>(null);
+  const [savingRecommendations, setSavingRecommendations] = useState(false);
+  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (!isCameraOpen || !streamRef.current || !videoRef.current) return;
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    video.srcObject = stream;
+    const p = video.play();
+    if (p instanceof Promise) {
+      void p.catch(() => {
+        setStatusTone("error");
+        setStatus("Could not start the camera preview. Try another browser or check site permissions.");
+      });
+    }
+    return () => {
+      video.srcObject = null;
+    };
+  }, [isCameraOpen]);
+
+  useEffect(() => {
+    if (!recommendations?.length) {
+      setFavoritedIds(new Set());
+      return;
+    }
+    void (async () => {
+      const res = await fetch("/api/favorites", { credentials: "include" });
+      if (!res.ok) return;
+      const json = (await res.json()) as { favorites?: { hairstyleId: string }[] };
+      setFavoritedIds(new Set(json.favorites?.map((f) => f.hairstyleId) ?? []));
+    })();
+  }, [recommendations]);
+
+  async function toggleFavorite(hairstyleId: string) {
+    const isOn = favoritedIds.has(hairstyleId);
+    if (isOn) {
+      const res = await fetch(`/api/favorites?hairstyleId=${encodeURIComponent(hairstyleId)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setFavoritedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(hairstyleId);
+          return next;
+        });
+      }
+      return;
+    }
+    const res = await fetch("/api/favorites", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hairstyleId }),
+    });
+    if (res.ok) {
+      setFavoritedIds((prev) => new Set(prev).add(hairstyleId));
+    }
+  }
 
   const topShapeScores = useMemo(() => {
     if (!analysis) return [];
@@ -131,6 +213,7 @@ export function FaceShapeAnalyzer() {
       setAnalysis(shapeResult);
       setHairAnalysis(hairResult);
       setHairLengthAnalysis(hairLengthResult);
+      setRecommendations(null);
       setStatusTone("success");
       setStatus(
         `Detected face shape: ${shapeResult.shape} (${formatPct(shapeResult.confidence)}). Hair type: ${hairResult.type} (${formatPct(hairResult.confidence)}). Hair length: ${hairLengthResult.length} (${formatPct(hairLengthResult.confidence)}).`,
@@ -145,6 +228,7 @@ export function FaceShapeAnalyzer() {
 
   async function onFileChange(file?: File) {
     if (!file) return;
+    captureSourceRef.current = "upload";
     setStatusTone("busy");
     setStatus(`Preparing image: ${file.name}`);
     const dataUrl = await fileToDataUrl(file);
@@ -166,14 +250,11 @@ export function FaceShapeAnalyzer() {
       setIsCameraOpen(true);
       setStatusTone("busy");
       setStatus("Camera ready. Position your face and visible hair inside the frame, then capture an image.");
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
     } catch {
       setStatusTone("error");
-      setStatus("Camera access was denied or is unavailable on this device.");
+      setStatus(
+        "Camera access was denied or is unavailable. Use HTTPS or localhost, allow camera in the browser site settings, and ensure no other app is locking the camera.",
+      );
     }
   }
 
@@ -185,6 +266,7 @@ export function FaceShapeAnalyzer() {
 
   async function captureFrame() {
     if (!videoRef.current || !canvasRef.current) return;
+    captureSourceRef.current = "camera";
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -204,11 +286,62 @@ export function FaceShapeAnalyzer() {
     closeCamera();
   }
 
+  async function saveAnalysisAndRecommendations() {
+    if (!previewUrl || !analysis || !hairAnalysis || !hairLengthAnalysis) return;
+
+    setSavingRecommendations(true);
+    setStatusTone("busy");
+    setStatus("Saving your photo and generating catalog recommendations...");
+    try {
+      const blob = await dataUrlToBlob(previewUrl);
+      const fd = new FormData();
+      fd.append("file", blob, "face.jpg");
+      fd.append("uploadType", captureSourceRef.current === "camera" ? "CAMERA" : "UPLOAD");
+
+      const up = await fetch("/api/upload/face", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+      const upJson = (await up.json()) as { id?: string; error?: string };
+      if (!up.ok) {
+        throw new Error(upJson.error ?? "Upload failed. Sign in again if your session expired.");
+      }
+      if (!upJson.id) throw new Error("Upload response was missing an id.");
+
+      const an = await fetch("/api/analyze/face", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          faceUploadId: upJson.id,
+          faceShape: analysis,
+          hairType: hairAnalysis,
+          hairLength: hairLengthAnalysis,
+        }),
+      });
+      const anJson = (await an.json()) as { items?: RecommendationRow[]; error?: string };
+      if (!an.ok) {
+        throw new Error(anJson.error ?? "Could not save analysis.");
+      }
+
+      setRecommendations(anJson.items ?? []);
+      setStatusTone("success");
+      setStatus("Recommendations saved to your history. Your style list is below.");
+    } catch (e) {
+      setStatusTone("error");
+      setStatus(e instanceof Error ? e.message : "Save failed.");
+    } finally {
+      setSavingRecommendations(false);
+    }
+  }
+
   function resetAnalyzer() {
     setPreviewUrl(null);
     setAnalysis(null);
     setHairAnalysis(null);
     setHairLengthAnalysis(null);
+    setRecommendations(null);
     setStatusTone("idle");
     setStatus("Upload a clear front-facing image or use the camera to begin analysis.");
     closeCamera();
@@ -270,6 +403,72 @@ export function FaceShapeAnalyzer() {
             {status}
           </Alert>
 
+          {analysis && hairAnalysis && hairLengthAnalysis && previewUrl ? (
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="mb-3 text-sm font-medium text-slate-800">Save to your account</p>
+              <p className="mb-3 text-xs text-slate-500">
+                Stores this scan on your account and ranks catalog styles using your detected face shape, hair type, and length.
+              </p>
+              <Button
+                className="h-11 rounded-2xl"
+                onClick={() => void saveAnalysisAndRecommendations()}
+                disabled={isAnalyzing || savingRecommendations}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {savingRecommendations ? "Saving…" : "Save scan & load recommendations"}
+              </Button>
+            </div>
+          ) : null}
+
+          {recommendations && recommendations.length > 0 ? (
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Recommended hairstyles</p>
+                <p className="text-xs text-slate-500">Name, catalog notes, and why it was suggested. Tap the heart to save.</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {recommendations.slice(0, 8).map((row) => {
+                  const hs = row.hairstyle;
+                  const hid = hs?.id;
+                  return (
+                    <div
+                      key={row.id}
+                      className="relative min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 pr-14 shadow-sm"
+                    >
+                      {hid ? (
+                        <button
+                          type="button"
+                          className="absolute right-3 top-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 touch-manipulation"
+                          aria-label={favoritedIds.has(hid) ? "Remove from favorites" : "Save to favorites"}
+                          onClick={() => void toggleFavorite(hid)}
+                        >
+                          <Heart
+                            className={cn(
+                              "h-5 w-5",
+                              favoritedIds.has(hid) ? "fill-rose-500 text-rose-500" : "text-slate-500",
+                            )}
+                          />
+                        </button>
+                      ) : null}
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">#{row.rank}</p>
+                      <h4 className="mt-1 break-words text-lg font-semibold leading-snug text-slate-900">
+                        {hs?.name ?? "Recommended style"}
+                      </h4>
+                      {hs?.description ? (
+                        <p className="mt-2 break-words text-sm leading-relaxed text-slate-600">{hs.description}</p>
+                      ) : (
+                        <p className="mt-2 text-sm text-slate-500">No catalog description for this entry.</p>
+                      )}
+                      {row.reason ? (
+                        <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">{row.reason}</p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           {isCameraOpen ? (
             <div className="space-y-3 rounded-3xl border border-slate-200 bg-slate-950 p-4 text-white">
               <div className="flex items-center justify-between">
@@ -288,13 +487,17 @@ export function FaceShapeAnalyzer() {
             </div>
           ) : null}
 
-          <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div className="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
               {previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt="Selected preview" className="h-full min-h-[300px] w-full object-cover" />
+                <img
+                  src={previewUrl}
+                  alt="Selected preview"
+                  className="mx-auto block h-auto min-h-[300px] w-full max-w-md max-h-[min(72vh,620px)] object-cover object-top aspect-[3/4]"
+                />
               ) : (
-                <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 p-6 text-center text-slate-500">
+                <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 p-6 text-center text-slate-500 aspect-[3/4] max-w-md mx-auto">
                   <ScanFace className="h-10 w-10 text-slate-300" />
                   <p className="max-w-sm text-sm">
                     Use a straight, well-lit photo with the forehead, sides of the face, and hair texture clearly visible for the most reliable result.
@@ -303,41 +506,55 @@ export function FaceShapeAnalyzer() {
               )}
             </div>
 
-            <div className="space-y-4 rounded-3xl border border-slate-200 p-4">
-              <div className="grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Detected face shape</p>
-                  <h3 className="mt-2 text-2xl font-semibold capitalize text-slate-900">{analysis ? analysis.shape : "Waiting"}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{analysis ? analysis.summary : "No face-shape result yet."}</p>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Detected hair type</p>
-                  <h3 className="mt-2 flex items-center gap-2 text-2xl font-semibold capitalize text-slate-900">
-                    <Waves className="h-5 w-5 text-slate-500" /> {hairAnalysis ? hairAnalysis.type : "Waiting"}
+            <div className="min-w-0 space-y-4 rounded-3xl border border-slate-200 p-3 sm:p-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="min-w-0 rounded-2xl bg-slate-50 p-3 sm:p-4">
+                  <p className="text-[11px] font-medium uppercase leading-tight tracking-wide text-slate-500 sm:text-xs sm:tracking-wider">
+                    Face shape
+                  </p>
+                  <h3 className="mt-2 break-words text-xl font-semibold capitalize leading-tight text-slate-900 sm:text-2xl">
+                    {analysis ? analysis.shape : "Waiting"}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600">{hairAnalysis ? hairAnalysis.summary : "No hair-type result yet."}</p>
+                  <p className="mt-2 break-words text-sm leading-snug text-slate-600">
+                    {analysis ? analysis.summary : "No face-shape result yet."}
+                  </p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Detected hair length</p>
-                  <h3 className="mt-2 flex items-center gap-2 text-2xl font-semibold capitalize text-slate-900">
-                    <Ruler className="h-5 w-5 text-slate-500" /> {hairLengthAnalysis ? hairLengthAnalysis.length : "Waiting"}
+                <div className="min-w-0 rounded-2xl bg-slate-50 p-3 sm:p-4">
+                  <p className="text-[11px] font-medium uppercase leading-tight tracking-wide text-slate-500 sm:text-xs sm:tracking-wider">
+                    Hair type
+                  </p>
+                  <h3 className="mt-2 flex flex-wrap items-center gap-2 break-words text-xl font-semibold capitalize leading-tight text-slate-900 sm:text-2xl">
+                    <Waves className="h-5 w-5 shrink-0 text-slate-500" /> {hairAnalysis ? hairAnalysis.type : "Waiting"}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600">{hairLengthAnalysis ? hairLengthAnalysis.summary : "No hair-length result yet."}</p>
+                  <p className="mt-2 break-words text-sm leading-snug text-slate-600">
+                    {hairAnalysis ? hairAnalysis.summary : "No hair-type result yet."}
+                  </p>
+                </div>
+                <div className="min-w-0 rounded-2xl bg-slate-50 p-3 sm:p-4">
+                  <p className="text-[11px] font-medium uppercase leading-tight tracking-wide text-slate-500 sm:text-xs sm:tracking-wider">
+                    Hair length
+                  </p>
+                  <h3 className="mt-2 flex flex-wrap items-center gap-2 break-words text-xl font-semibold capitalize leading-tight text-slate-900 sm:text-2xl">
+                    <Ruler className="h-5 w-5 shrink-0 text-slate-500" /> {hairLengthAnalysis ? hairLengthAnalysis.length : "Waiting"}
+                  </h3>
+                  <p className="mt-2 break-words text-sm leading-snug text-slate-600">
+                    {hairLengthAnalysis ? hairLengthAnalysis.summary : "No hair-length result yet."}
+                  </p>
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Face-shape confidence</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{analysis ? formatPct(analysis.confidence) : "--"}</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="min-w-0 rounded-2xl bg-slate-50 p-3 sm:p-4">
+                  <p className="text-[10px] uppercase leading-tight tracking-wide text-slate-500 sm:text-xs">Face confidence</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{analysis ? formatPct(analysis.confidence) : "--"}</p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Hair-type confidence</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{hairAnalysis ? formatPct(hairAnalysis.confidence) : "--"}</p>
+                <div className="min-w-0 rounded-2xl bg-slate-50 p-3 sm:p-4">
+                  <p className="text-[10px] uppercase leading-tight tracking-wide text-slate-500 sm:text-xs">Hair-type confidence</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{hairAnalysis ? formatPct(hairAnalysis.confidence) : "--"}</p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Hair-length confidence</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{hairLengthAnalysis ? formatPct(hairLengthAnalysis.confidence) : "--"}</p>
+                <div className="min-w-0 rounded-2xl bg-slate-50 p-3 sm:p-4">
+                  <p className="text-[10px] uppercase leading-tight tracking-wide text-slate-500 sm:text-xs">Length confidence</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{hairLengthAnalysis ? formatPct(hairLengthAnalysis.confidence) : "--"}</p>
                 </div>
               </div>
 
@@ -361,7 +578,10 @@ export function FaceShapeAnalyzer() {
                     ))}
                   </ul>
                   <ul className="space-y-2 text-sm text-slate-700">
-                    {(hairLengthAnalysis ? hairLengthTips[hairLengthAnalysis.length] : ["Hair-length recommendations will appear after the first successful scan."]).map((tip) => (
+                    {(hairLengthAnalysis
+                      ? hairLengthTips[hairLengthAnalysis.length] ?? hairLengthTips.short
+                      : ["Hair-length recommendations will appear after the first successful scan."]
+                    ).map((tip) => (
                       <li key={tip} className="flex gap-2">
                         <span className="mt-1 h-2 w-2 rounded-full bg-slate-400" />
                         <span>{tip}</span>
@@ -470,6 +690,14 @@ export function FaceShapeAnalyzer() {
                   <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
                     <span>Hair-seed confidence</span>
                     <span className="font-medium">{hairLengthAnalysis.metrics.hairSeedConfidence.toFixed(3)}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                    <span>Crown hair density</span>
+                    <span className="font-medium">{hairLengthAnalysis.metrics.crownHairDensity.toFixed(3)}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                    <span>Hair vs skin color gap</span>
+                    <span className="font-medium">{hairLengthAnalysis.metrics.hairSkinColorDistance.toFixed(1)}</span>
                   </div>
                 </>
               ) : (

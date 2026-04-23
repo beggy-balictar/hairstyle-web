@@ -1,16 +1,27 @@
+import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export function StatusCard({ title, subtitle }: { title: string; subtitle: string }) {
+export function StatusCard({
+  title,
+  subtitle,
+  value,
+}: {
+  title: string;
+  subtitle?: string;
+  value?: ReactNode;
+}) {
   return (
     <Card className="rounded-3xl border-slate-200 shadow-sm">
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription>{subtitle}</CardDescription>
+        {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}
       </CardHeader>
       <CardContent>
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-        </div>
+        {value !== undefined ? (
+          <div className="text-2xl font-semibold tabular-nums text-slate-900">{value}</div>
+        ) : (
+          <div className="h-10 animate-pulse rounded-2xl bg-slate-100" aria-hidden />
+        )}
       </CardContent>
     </Card>
   );

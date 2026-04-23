@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { validateEmail } from "@/lib/validators";
 import { ROUTES } from "@/lib/routes";
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ nextPath }: { nextPath?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
@@ -24,21 +24,38 @@ export function AdminLoginForm() {
     if (Object.keys(nextErrors).length) return;
 
     setSubmitting(true);
-    router.push(ROUTES.adminDashboard);
+    try {
+      const res = await fetch("/api/auth/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: form.email.trim(), password: form.password }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setErrors({ form: data.error ?? "Admin sign-in failed." });
+        return;
+      }
+      router.push(nextPath ?? ROUTES.adminDashboard);
+    } catch {
+      setErrors({ form: "Network error. Try again." });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="admin-email">Admin email</Label>
+          <Label htmlFor="admin-email" className="text-white">Admin email</Label>
           <div className="relative">
             <Mail className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
             <Input
               id="admin-email"
               type="email"
               className="h-12 rounded-2xl pl-10"
-              placeholder="admin@stylehair.com"
+              placeholder="your.name@stylehair.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -46,7 +63,7 @@ export function AdminLoginForm() {
           {errors.email ? <p className="text-xs text-red-500">{errors.email}</p> : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="admin-password">Password</Label>
+          <Label htmlFor="admin-password" className="text-white">Password</Label>
           <div className="relative">
             <Lock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
             <Input
@@ -64,7 +81,12 @@ export function AdminLoginForm() {
           {errors.password ? <p className="text-xs text-red-500">{errors.password}</p> : null}
         </div>
       </div>
-      <Button className="h-12 w-full rounded-2xl" onClick={handleSubmit} disabled={submitting}>
+      {errors.form ? <p className="text-xs text-red-500">{errors.form}</p> : null}
+      <Button
+        className="h-12 w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500"
+        onClick={() => void handleSubmit()}
+        disabled={submitting}
+      >
         {submitting ? "Entering dashboard..." : "Sign in as admin"}
       </Button>
     </div>

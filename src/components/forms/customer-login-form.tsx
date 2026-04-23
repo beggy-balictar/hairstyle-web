@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/lib/routes";
 import { validateEmail } from "@/lib/validators";
 
-export function CustomerLoginForm() {
+export function CustomerLoginForm({ nextPath }: { nextPath?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
@@ -25,7 +25,24 @@ export function CustomerLoginForm() {
     if (Object.keys(nextErrors).length) return;
 
     setSubmitting(true);
-    router.push(ROUTES.customerDashboard);
+    try {
+      const res = await fetch("/api/auth/customer-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: form.email.trim(), password: form.password }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setErrors({ form: data.error ?? "Sign-in failed." });
+        return;
+      }
+      router.push(nextPath ?? ROUTES.customerDashboard);
+    } catch {
+      setErrors({ form: "Network error. Try again." });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -63,7 +80,8 @@ export function CustomerLoginForm() {
         </div>
         {errors.password ? <p className="text-xs text-red-500">{errors.password}</p> : null}
       </div>
-      <Button className="h-12 w-full rounded-2xl" onClick={handleSubmit} disabled={submitting}>
+      {errors.form ? <p className="text-xs text-red-500">{errors.form}</p> : null}
+      <Button className="h-12 w-full rounded-2xl" onClick={() => void handleSubmit()} disabled={submitting}>
         {submitting ? "Opening dashboard..." : "Login"}
       </Button>
       <div className="text-center text-sm text-slate-500">

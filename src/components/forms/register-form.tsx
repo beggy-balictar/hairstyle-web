@@ -60,7 +60,31 @@ export function RegisterForm() {
     if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
-    router.push(ROUTES.customerLogin);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          phone: form.phone.trim() || undefined,
+          birthDate: form.birthDate,
+          gender: form.gender,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setErrors({ form: data.error ?? "Registration failed. Try again." });
+        return;
+      }
+      router.push(ROUTES.customerLogin);
+    } catch {
+      setErrors({ form: "Network error. Check your connection and try again." });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -201,8 +225,9 @@ export function RegisterForm() {
         </span>
       </label>
       {errors.agreeTerms ? <p className="text-xs text-red-500">{errors.agreeTerms}</p> : null}
+      {errors.form ? <p className="text-xs text-red-500">{errors.form}</p> : null}
 
-      <Button className="h-12 w-full rounded-2xl" onClick={handleSubmit} disabled={submitting}>
+      <Button className="h-12 w-full rounded-2xl" onClick={() => void handleSubmit()} disabled={submitting}>
         {submitting ? "Creating account..." : "Create account"}
       </Button>
     </div>

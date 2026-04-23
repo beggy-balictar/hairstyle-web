@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Home, Camera, History, Heart, User, LogOut } from "lucide-react";
+import { Home, Camera, History, Heart, User } from "lucide-react";
 import { Brand } from "@/components/layout/brand";
 import { SidebarButton } from "@/components/shared/sidebar-button";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { CustomerPageViewBeacon } from "@/components/customer/customer-page-view-beacon";
+import { CustomerSignOutButton } from "@/components/customer/customer-sign-out-button";
 import { ROUTES } from "@/lib/routes";
 
 const customerLinks = [
@@ -18,6 +18,7 @@ const customerLinks = [
 export default function CustomerLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
+      <CustomerPageViewBeacon />
       <aside className="hidden border-r border-slate-200 bg-white px-5 py-6 lg:block">
         <div className="flex h-full flex-col gap-6">
           <Brand />
@@ -38,26 +39,22 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
                 
               </div>
             </div>
-            <Button asChild variant="outline" className="w-full rounded-2xl">
-              <Link href={ROUTES.landing}>
-                <LogOut className="mr-2 h-4 w-4" /> Sign out
-              </Link>
-            </Button>
+            <CustomerSignOutButton />
           </div>
         </div>
       </aside>
       <div className="min-w-0">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/90 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
-          <div>
-            
-            <div className="font-semibold">Customer</div>
-          </div>
-          
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+          <div className="font-semibold text-slate-900">StyleHair · Customer</div>
         </header>
-        <div className="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
-          <div className="flex gap-2 overflow-x-auto">
+        <div className="border-b border-slate-200 bg-white px-3 py-2 lg:hidden">
+          <div className="flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
             {customerLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="whitespace-nowrap rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-600">
+              <Link
+                key={link.href}
+                href={link.href}
+                className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 active:bg-slate-50"
+              >
                 {link.label}
               </Link>
             ))}

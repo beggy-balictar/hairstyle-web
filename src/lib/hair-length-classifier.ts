@@ -116,9 +116,15 @@ function collectColorStats(
   };
 }
 
+function rgbDist(a: readonly number[], b: readonly number[]) {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+
 function summarizeHairLength(length: HairLength, metrics: HairLengthMetrics) {
   const ratio = metrics.belowChinLengthRatio.toFixed(2);
   switch (length) {
+    case "bald":
+      return `Very little hair signal above the forehead and crown; scalp region resembles skin texture and color. Crown coverage is low (${metrics.crownHairDensity.toFixed(2)}). This often indicates a shaved or naturally bald look—recommendations will favor minimal-hair styles.`;
     case "short":
       return `Visible hair stays mostly above the jaw or only slightly below the chin. Estimated below-chin ratio: ${ratio}.`;
     case "medium":
@@ -266,6 +272,7 @@ export async function classifyHairLengthFromImage(
   let lowerHalfRows = 0;
   let sideCoverageSum = 0;
   let sideRows = 0;
+  const rowCoverages: number[] = [];
 
   for (let y = 0; y < targetHeight; y += 1) {
     const normalizedY = (y - localForeheadY) / Math.max(1, localFaceHeight);
@@ -331,7 +338,28 @@ export async function classifyHairLengthFromImage(
       sideCoverageSum += sideCoverage;
       sideRows += 1;
     }
+
+    rowCoverages.push(rowCoverage);
   }
+
+  const foreheadBandEnd = Math.min(targetHeight - 1, Math.ceil(localForeheadY + targetHeight * 0.14));
+  let crownSum = 0;
+  let crownRows = 0;
+  for (let y = 0; y <= foreheadBandEnd; y += 1) {
+    crownSum += rowCoverages[y] ?? 0;
+    crownRows += 1;
+  }
+  const crownHairDensity = crownRows ? crownSum / crownRows : 0;
+
+  const upperFaceEnd = Math.min(targetHeight - 1, Math.floor(localChinY - localFaceHeight * 0.35));
+  let upperSum = 0;
+  let upperRows = 0;
+  for (let y = 0; y <= Math.max(0, upperFaceEnd); y += 1) {
+    upperSum += rowCoverages[y] ?? 0;
+    upperRows += 1;
+  }
+  const upperFaceHairDensity = upperRows ? upperSum / upperRows : crownHairDensity;
+  const hairSkinColorDistance = rgbDist(hairStats.mean, skinStats.mean);
 
   const visibleTopOffsetRatio = clamp((localForeheadY - visibleTopY) / Math.max(1, localFaceHeight), 0, 1.25);
   const belowChinLengthRatio = clamp((bottomY - localChinY) / Math.max(1, localFaceHeight), 0, 1.5);
@@ -349,9 +377,25 @@ export async function classifyHairLengthFromImage(
     lowerCoverage,
     sideCoverage,
     lowerHalfCoverage,
+    crownHairDensity,
+    hairSkinColorDistance,
   };
 
+  const scalpLike = clamp(1 - hairSkinColorDistance / 52, 0, 1);
+  const baldCrown = clamp(1 - crownHairDensity / 0.085, 0, 1);
+  const baldUpper = clamp(1 - upperFaceHairDensity / 0.09, 0, 1);
+  const baldChin = clamp(1 - belowChinLengthRatio / 0.2, 0, 1);
+  const baldSides = clamp(1 - sideCoverage / 0.28, 0, 1);
+  const lowHairSignal = clamp(1 - hairSeedConfidence / 0.42, 0, 1);
+
   const scores: Record<HairLength, number> = {
+    bald:
+      0.28 * baldCrown +
+      0.22 * baldUpper +
+      0.18 * baldChin +
+      0.14 * baldSides +
+      0.14 * scalpLike +
+      0.04 * lowHairSignal,
     short:
       0.4 * closeness(belowChinLengthRatio, 0.08, 0.2) +
       0.24 * closeness(lowerCoverage, 0.08, 0.12) +
@@ -370,12 +414,61 @@ export async function classifyHairLengthFromImage(
   };
 
   if (hairSeedConfidence < 0.3) {
-    scores.short += 0.08;
+    scores.short += 0.05;
+    scores.bald += 0.08;
+  }
+
+  const neckShadowFalseLong =
+    belowChinLengthRatio > 0.32 &&
+    crownHairDensity < 0.095 &&
+    upperFaceHairDensity < 0.1 &&
+    scalpLike > 0.14;
+
+  if (neckShadowFalseLong) {
+    scores.bald += 0.42;
+    scores.long *= 0.12;
+    scores.medium *= 0.28;
+    scores.short *= 0.55;
+  }
+
+  const strongBaldProfile =
+    crownHairDensity < 0.068 &&
+    upperFaceHairDensity < 0.085 &&
+    hairSkinColorDistance < 58 &&
+    scalpLike > 0.12;
+
+  if (strongBaldProfile) {
+    scores.bald = Math.max(scores.bald, 0.9);
+    scores.long *= 0.1;
+    scores.medium *= 0.26;
+    scores.short *= 0.5;
   }
 
   const ordered = Object.entries(scores).sort((a, b) => b[1] - a[1]) as Array<[HairLength, number]>;
-  const [length, bestScore] = ordered[0];
+  let length = ordered[0][0];
+  let bestScore = ordered[0][1];
   const secondScore = ordered[1]?.[1] ?? 0;
+
+  if (
+    length === "long" &&
+    crownHairDensity < 0.078 &&
+    upperFaceHairDensity < 0.095 &&
+    scalpLike > 0.14
+  ) {
+    length = "bald";
+    bestScore = Math.max(scores.bald, 0.74);
+  }
+
+  if (
+    length === "medium" &&
+    crownHairDensity < 0.065 &&
+    upperFaceHairDensity < 0.08 &&
+    hairSkinColorDistance < 55
+  ) {
+    length = "bald";
+    bestScore = Math.max(scores.bald, 0.7);
+  }
+
   const confidence = clamp(0.5 + (bestScore - secondScore) * 0.85 + hairSeedConfidence * 0.12, 0.5, 0.98);
 
   return {
