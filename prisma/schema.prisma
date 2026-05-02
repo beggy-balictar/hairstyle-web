@@ -29,6 +29,12 @@ enum GenderOption {
   PREFER_NOT_TO_SAY
 }
 
+enum HairstyleCatalogPreference {
+  MENS
+  WOMENS
+  ALL
+}
+
 model User {
   id                String               @id @default(cuid())
   email             String               @unique
@@ -47,6 +53,7 @@ model User {
   satisfactions     Satisfaction[]
   auditLogs         AuditLog[]           @relation("AuditActor")
   pageViews         PageView[]
+  hairstylePreviewLogs HairstylePreviewLog[]
 
   @@map("users")
 }
@@ -62,6 +69,7 @@ model CustomerProfile {
   preferredStyle    String?       @map("preferred_style")
   hairType          String?       @map("hair_type")
   notes             String?
+  hairstyleCatalogPreference HairstyleCatalogPreference @default(ALL) @map("hairstyle_catalog_preference")
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
 
@@ -213,4 +221,16 @@ model AuditLog {
   actor             User        @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: Cascade)
 
   @@map("audit_logs")
+}
+
+/** One row per successful AI hairstyle preview (for quota / cooldown). */
+model HairstylePreviewLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("hairstyle_preview_logs")
 }

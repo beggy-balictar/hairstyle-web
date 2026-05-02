@@ -4,18 +4,42 @@ import { SESSION_COOKIE } from "@/lib/auth-constants";
 import { verifySessionTokenEdge } from "@/lib/auth-jwt-edge";
 import { ROUTES } from "@/lib/routes";
 
+function isDevTrustedOrigin(origin: string): boolean {
+  if (origin.startsWith("exp://")) return true;
+  try {
+    const u = new URL(origin);
+    if (u.protocol === "exp:") return true;
+    const host = u.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return true;
+    if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+    if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 function buildApiCorsHeaders(request: NextRequest): Headers {
   const origin = request.headers.get("origin");
   const raw =
     process.env.MOBILE_APP_ORIGINS ??
-    "http://localhost:5173,http://127.0.0.1:5173";
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://127.0.0.1:8081,http://localhost:19006,http://127.0.0.1:19006";
   const allowed = raw
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   const headers = new Headers();
-  if (origin && allowed.includes(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
+  let allowOrigin: string | null = null;
+  if (origin) {
+    if (allowed.includes(origin)) {
+      allowOrigin = origin;
+    } else if (process.env.NODE_ENV === "development" && isDevTrustedOrigin(origin)) {
+      allowOrigin = origin;
+    }
+  }
+  if (allowOrigin) {
+    headers.set("Access-Control-Allow-Origin", allowOrigin);
     headers.set("Access-Control-Allow-Credentials", "true");
     headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
     headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");

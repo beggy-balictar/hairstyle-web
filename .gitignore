@@ -6,3 +6,6 @@ dist
 build
 .DS_Store
 public/uploads
+*.tsbuildinfo
+# Remove locally if still present (folder may be locked by another process).
+hairstyle-gemini-backend/

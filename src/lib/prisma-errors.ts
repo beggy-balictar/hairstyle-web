@@ -9,7 +9,7 @@ export function prismaErrorToResponse(error: unknown): NextResponse | null {
     return NextResponse.json({ error: DB_SETUP_MESSAGE }, { status: 503 });
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    if (error.code === "P1001") {
+    if (error.code === "P1001" || error.code === "P1000") {
       return NextResponse.json(
         { error: "Cannot reach PostgreSQL. Check DATABASE_URL and that the database server is running." },
         { status: 503 },

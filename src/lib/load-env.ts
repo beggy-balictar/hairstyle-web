@@ -15,3 +15,18 @@ config({ path: resolve(root, ".env") });
 if (process.env.NODE_ENV !== "production" && !process.env.DATABASE_URL?.trim()) {
   config({ path: resolve(root, ".env.example") });
 }
+
+/** Google AI Studio / GenAI SDK env names vary; normalize to GEMINI_API_KEY for our routes. */
+function normalizeGeminiApiKey() {
+  const existing = process.env.GEMINI_API_KEY?.trim();
+  if (existing) return;
+  const fallback =
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
+    process.env.GOOGLE_API_KEY?.trim() ||
+    process.env.GENAI_API_KEY?.trim();
+  if (fallback) {
+    process.env.GEMINI_API_KEY = fallback;
+  }
+}
+
+normalizeGeminiApiKey();

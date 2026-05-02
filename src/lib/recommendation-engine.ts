@@ -47,22 +47,14 @@ export function scoreHairstyles(
   hairLength: HairLength,
 ): ScoredHairstyle[] {
   const shapeLc = faceShape.toLowerCase();
-
-  const scored = hairstyles.map((hairstyle) => {
+  const shapeMatchedOnly = hairstyles.filter((hairstyle) => {
     const shapes = parseShapeList(hairstyle.suitableFaceShapes);
-    let score = 20;
-    let reason = "General catalog match.";
+    return shapes.includes(shapeLc);
+  });
 
-    if (shapes.length === 0) {
-      score += 5;
-      reason = "Versatile style with no strict face-shape filter in the catalog.";
-    } else if (shapes.includes(shapeLc)) {
-      score += 55;
-      reason = `Strong match for your ${faceShape} face shape.`;
-    } else {
-      score += 12;
-      reason = `Possible option; primary catalog targets ${shapes.join(", ")}—still worth considering with your stylist.`;
-    }
+  const scored = shapeMatchedOnly.map((hairstyle) => {
+    let score = 75;
+    const reason = `Strong match for your ${faceShape} face shape.`;
 
     score += lengthBonus(hairstyle, hairLength);
     score += hairTypeBonus(hairstyle, hairType);

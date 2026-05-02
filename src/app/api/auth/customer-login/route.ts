@@ -1,3 +1,4 @@
+import "@/lib/load-env";
 import { NextResponse } from "next/server";
 import { UserRole, UserStatus } from "@prisma/client";
 import { SESSION_COOKIE } from "@/lib/auth-constants";
@@ -7,25 +8,28 @@ import { verifyPassword } from "@/lib/password";
 import { validateEmail } from "@/lib/validators";
 import { prismaErrorToResponse } from "@/lib/prisma-errors";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
-  let body: { email?: string; password?: string };
   try {
-    body = (await request.json()) as { email?: string; password?: string };
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
-  }
+    let body: { email?: string; password?: string };
+    try {
+      body = (await request.json()) as { email?: string; password?: string };
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
 
-  const email = body.email?.trim().toLowerCase() ?? "";
-  const password = body.password ?? "";
+    const email = body.email?.trim().toLowerCase() ?? "";
+    const password = body.password ?? "";
 
-  if (!validateEmail(email)) {
-    return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
-  }
-  if (!password) {
-    return NextResponse.json({ error: "Password is required." }, { status: 400 });
-  }
+    if (!validateEmail(email)) {
+      return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+    }
+    if (!password) {
+      return NextResponse.json({ error: "Password is required." }, { status: 400 });
+    }
 
-  try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || user.role !== UserRole.CUSTOMER) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
@@ -47,7 +51,14 @@ export async function POST(request: Request) {
   } catch (e) {
     const pr = prismaErrorToResponse(e);
     if (pr) return pr;
-    console.error(e);
-    return NextResponse.json({ error: "Sign-in failed unexpectedly." }, { status: 500 });
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[api/auth/customer-login]", e);
+    return NextResponse.json(
+      {
+        error: "Sign-in failed unexpectedly.",
+        ...(process.env.NODE_ENV === "development" ? { detail: msg } : {}),
+      },
+      { status: 500 },
+    );
   }
 }

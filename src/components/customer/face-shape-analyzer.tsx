@@ -77,8 +77,16 @@ type RecommendationRow = {
     name: string;
     description: string | null;
     sampleImageUrl: string | null;
+    suitableFaceShapes?: unknown;
   } | null;
 };
+
+const featuredCatalogShapes = ["oval", "square", "round"] as const;
+
+function parseShapeList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((entry) => String(entry).toLowerCase().trim()).filter(Boolean);
+}
 
 export function FaceShapeAnalyzer() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -182,6 +190,17 @@ export function FaceShapeAnalyzer() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
   }, [hairLengthAnalysis]);
+
+  const recommendationsByFeaturedShape = useMemo(() => {
+    const all = recommendations ?? [];
+    return featuredCatalogShapes.map((shape) => ({
+      shape,
+      rows: all.filter((row) => {
+        const shapes = parseShapeList(row.hairstyle?.suitableFaceShapes);
+        return shapes.includes(shape);
+      }),
+    }));
+  }, [recommendations]);
 
   async function runAnalysisFromDataUrl(dataUrl: string) {
     try {
@@ -424,47 +443,67 @@ export function FaceShapeAnalyzer() {
             <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Recommended hairstyles</p>
-                <p className="text-xs text-slate-500">Name, catalog notes, and why it was suggested. Tap the heart to save.</p>
+                <p className="text-xs text-slate-500">
+                  Grouped one-by-one by face-shape catalog fit (oval, square, round). Tap the heart to save.
+                </p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {recommendations.slice(0, 8).map((row) => {
-                  const hs = row.hairstyle;
-                  const hid = hs?.id;
-                  return (
-                    <div
-                      key={row.id}
-                      className="relative min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 pr-14 shadow-sm"
-                    >
-                      {hid ? (
-                        <button
-                          type="button"
-                          className="absolute right-3 top-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 touch-manipulation"
-                          aria-label={favoritedIds.has(hid) ? "Remove from favorites" : "Save to favorites"}
-                          onClick={() => void toggleFavorite(hid)}
-                        >
-                          <Heart
-                            className={cn(
-                              "h-5 w-5",
-                              favoritedIds.has(hid) ? "fill-rose-500 text-rose-500" : "text-slate-500",
-                            )}
-                          />
-                        </button>
-                      ) : null}
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">#{row.rank}</p>
-                      <h4 className="mt-1 break-words text-lg font-semibold leading-snug text-slate-900">
-                        {hs?.name ?? "Recommended style"}
-                      </h4>
-                      {hs?.description ? (
-                        <p className="mt-2 break-words text-sm leading-relaxed text-slate-600">{hs.description}</p>
-                      ) : (
-                        <p className="mt-2 text-sm text-slate-500">No catalog description for this entry.</p>
-                      )}
-                      {row.reason ? (
-                        <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">{row.reason}</p>
-                      ) : null}
+              <div className="space-y-4">
+                {recommendationsByFeaturedShape.map((group) => (
+                  <div key={group.shape} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold capitalize text-slate-900">{group.shape} face shape</p>
+                      <span className="text-xs text-slate-500">{group.rows.length} style(s)</span>
                     </div>
-                  );
-                })}
+                    {group.rows.length > 0 ? (
+                      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        {group.rows.slice(0, 6).map((row) => {
+                          const hs = row.hairstyle;
+                          const hid = hs?.id;
+                          return (
+                            <div
+                              key={row.id}
+                              className="relative min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 pr-14 shadow-sm"
+                            >
+                              {hid ? (
+                                <button
+                                  type="button"
+                                  className="absolute right-3 top-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 touch-manipulation"
+                                  aria-label={favoritedIds.has(hid) ? "Remove from favorites" : "Save to favorites"}
+                                  onClick={() => void toggleFavorite(hid)}
+                                >
+                                  <Heart
+                                    className={cn(
+                                      "h-5 w-5",
+                                      favoritedIds.has(hid) ? "fill-rose-500 text-rose-500" : "text-slate-500",
+                                    )}
+                                  />
+                                </button>
+                              ) : null}
+                              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">#{row.rank}</p>
+                              <h4 className="mt-1 break-words text-lg font-semibold leading-snug text-slate-900">
+                                {hs?.name ?? "Recommended style"}
+                              </h4>
+                              {hs?.description ? (
+                                <p className="mt-2 break-words text-sm leading-relaxed text-slate-600">{hs.description}</p>
+                              ) : (
+                                <p className="mt-2 text-sm text-slate-500">No catalog description for this entry.</p>
+                              )}
+                              {row.reason ? (
+                                <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">
+                                  {row.reason}
+                                </p>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-sm text-slate-500">
+                        No catalog styles matched this shape yet.
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           ) : null}
