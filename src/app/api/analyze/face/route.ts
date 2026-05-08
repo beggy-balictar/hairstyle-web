@@ -103,24 +103,25 @@ export async function POST(request: Request) {
         },
       });
 
-      const items = await Promise.all(
-        scored.map((row, index) =>
-          tx.recommendationItem.create({
-            data: {
-              recommendationId: recommendation.id,
-              hairstyleId: row.hairstyle.id,
-              rank: index + 1,
-              score: row.score,
-              reason: row.reason,
-              previewImageUrl: row.hairstyle.sampleImageUrl ?? upload.imageUrl,
-            },
-            include: { hairstyle: true },
-          }),
-        ),
-      );
+      await tx.recommendationItem.createMany({
+        data: scored.map((row, index) => ({
+          recommendationId: recommendation.id,
+          hairstyleId: row.hairstyle.id,
+          rank: index + 1,
+          score: row.score,
+          reason: row.reason,
+          previewImageUrl: row.hairstyle.sampleImageUrl ?? upload.imageUrl,
+        })),
+      });
+
+      const items = await tx.recommendationItem.findMany({
+        where: { recommendationId: recommendation.id },
+        orderBy: { rank: "asc" },
+        include: { hairstyle: true },
+      });
 
       return { analysis, recommendation, items };
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     return NextResponse.json({
       analysisId: result.analysis.id,
