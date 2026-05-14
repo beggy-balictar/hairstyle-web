@@ -39,7 +39,7 @@ function KpiCard({
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{title}</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-950">{title}</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value ?? "—"}</p>
           <p className="mt-1 text-xs text-slate-500">{hint}</p>
         </div>
