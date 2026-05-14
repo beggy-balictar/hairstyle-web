@@ -1,13 +1,24 @@
 import Link from "next/link";
 import { SectionHeader } from "@/components/shared/section-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AdminChangePasswordForm } from "@/components/forms/admin-change-password-form";
 import { ROUTES } from "@/lib/routes";
 
 export default function AdminSettingsPage() {
   return (
     <div className="space-y-8">
       <SectionHeader title="Settings" description="Administrator accounts and deployment configuration." />
+
+      <Card className="rounded-2xl border-slate-200/80 bg-white/90 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">Change your password</CardTitle>
+          <CardDescription>Updates the password for the account you are signed in with.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AdminChangePasswordForm />
+        </CardContent>
+      </Card>
 
       <Card className="rounded-2xl border-slate-200/80 bg-white/90 shadow-sm">
         <CardHeader>
