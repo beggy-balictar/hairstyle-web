@@ -1,7 +1,9 @@
 import { cookies, headers } from "next/headers";
+import type { UserRole } from "@prisma/client";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SEC } from "@/lib/auth-constants";
 import type { SessionPayload } from "@/lib/auth-jwt";
 import { signSessionToken, verifySessionToken } from "@/lib/auth-jwt";
+import { prisma } from "@/lib/db";
 
 export type { SessionPayload };
 
@@ -9,6 +11,22 @@ export async function getSessionFromCookies(): Promise<SessionPayload | null> {
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);
+}
+
+export async function getVerifiedSessionFromCookies(role: UserRole): Promise<SessionPayload | null> {
+  const session = await getSessionFromCookies();
+  if (!session || session.role !== role) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.sub },
+    select: { role: true, status: true },
+  });
+
+  if (!user || user.role !== role || user.status !== "ACTIVE") {
+    return null;
+  }
+
+  return session;
 }
 
 /**

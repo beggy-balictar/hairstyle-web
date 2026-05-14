@@ -1,11 +1,16 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Home, Camera, History, Heart, User } from "lucide-react";
 import { Brand } from "@/components/layout/brand";
 import { SidebarButton } from "@/components/shared/sidebar-button";
 import { CustomerPageViewBeacon } from "@/components/customer/customer-page-view-beacon";
 import { CustomerSignOutButton } from "@/components/customer/customer-sign-out-button";
+import { getVerifiedSessionFromCookies } from "@/lib/auth-session";
 import { ROUTES } from "@/lib/routes";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const customerLinks = [
   { href: ROUTES.customerDashboard, label: "Overview", icon: Home },
@@ -15,7 +20,13 @@ const customerLinks = [
   { href: ROUTES.customerProfile, label: "Profile", icon: User },
 ];
 
-export default function CustomerLayout({ children }: { children: ReactNode }) {
+export default async function CustomerLayout({ children }: { children: ReactNode }) {
+  const session = await getVerifiedSessionFromCookies("CUSTOMER");
+
+  if (!session) {
+    redirect(`${ROUTES.roleLogin}?tab=customer`);
+  }
+
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
       <CustomerPageViewBeacon />

@@ -47,6 +47,15 @@ function buildApiCorsHeaders(request: NextRequest): Headers {
   return headers;
 }
 
+function redirectToLogin(request: NextRequest, tab: "admin" | "customer") {
+  const url = request.nextUrl.clone();
+  const next = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  url.pathname = ROUTES.roleLogin;
+  url.searchParams.set("next", next);
+  url.searchParams.set("tab", tab);
+  return NextResponse.redirect(url);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -67,18 +76,14 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     if (!session || session.role !== "ADMIN") {
-      const url = request.nextUrl.clone();
-      url.pathname = ROUTES.roleLogin;
-      url.searchParams.set("next", pathname);
-      url.searchParams.set("tab", "admin");
-      return NextResponse.redirect(url);
+      return redirectToLogin(request, "admin");
     }
   }
 
   if (pathname.startsWith("/customer")) {
-    const url = request.nextUrl.clone();
-    url.pathname = ROUTES.roleLogin;
-    return NextResponse.redirect(url);
+    if (!session || session.role !== "CUSTOMER") {
+      return redirectToLogin(request, "customer");
+    }
   }
 
   return NextResponse.next();
