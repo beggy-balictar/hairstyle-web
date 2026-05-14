@@ -106,7 +106,7 @@ export function AdminUsersTable() {
                 <col className="w-[14%]" />
                 <col className="w-[14%]" />
               </colgroup>
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-950">
                 <tr>
                   <th className="px-4 py-3">User</th>
                   <th className="px-4 py-3">Role</th>

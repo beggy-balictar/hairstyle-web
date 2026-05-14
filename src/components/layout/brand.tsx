@@ -3,7 +3,15 @@ import { cn } from "@/lib/utils";
 
 const BRAND_MARK = `StyleH${"\u1D00"}${"\u026A"}R`;
 
-export function Brand({ inverted }: { inverted?: boolean }) {
+type BrandProps = {
+  /** Frosted mark + light subtitle for dark admin chrome */
+  inverted?: boolean;
+  /** Solid mark; light subtitle on dark hero sections */
+  onDarkBackground?: boolean;
+};
+
+export function Brand({ inverted, onDarkBackground }: BrandProps) {
+  const lightSubtitle = inverted || onDarkBackground;
   return (
     <div className="flex items-center gap-3">
       <div
@@ -16,7 +24,14 @@ export function Brand({ inverted }: { inverted?: boolean }) {
       </div>
       <div>
         <div className="brand-rainbow text-lg font-semibold tracking-tight">{BRAND_MARK}</div>
-        <div className={cn("text-xs", inverted ? "text-slate-400" : "text-slate-500")}>AI-assisted hairstyle recommendation system</div>
+        <div
+          className={cn(
+            "text-xs font-medium",
+            lightSubtitle ? "text-slate-200" : "text-slate-800",
+          )}
+        >
+          AI-assisted hairstyle recommendation system
+        </div>
       </div>
     </div>
   );

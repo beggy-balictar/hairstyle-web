@@ -14,7 +14,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.12),transparent_24%)]" />
           <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-8 sm:px-10 lg:px-14">
             <div>
-              <Brand />
+              <Brand onDarkBackground />
             </div>
 
             <div className="max-w-4xl py-10 sm:py-14">

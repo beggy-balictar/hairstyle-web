@@ -20,7 +20,11 @@ export default function RoleLoginPage({ searchParams }: Props) {
         <div className="relative mx-auto max-w-2xl">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/70 bg-white/80 px-5 py-4 shadow-lg shadow-indigo-100/50 backdrop-blur-xl">
             <Brand />
-            <Button asChild variant="ghost" className="rounded-2xl text-slate-600">
+            <Button
+              asChild
+              variant="ghost"
+              className="rounded-2xl font-semibold !text-slate-950 hover:bg-slate-100 hover:!text-slate-950"
+            >
               <Link href={ROUTES.landing}>Home</Link>
             </Button>
           </div>
