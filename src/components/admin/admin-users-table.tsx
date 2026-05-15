@@ -94,7 +94,14 @@ export function AdminUsersTable() {
         />
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-sm text-slate-500">Loading…</p> : null}
+        {loading ? (
+          <p className="text-sm text-slate-500">
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
+              Loading...
+            </span>
+          </p>
+        ) : null}
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         {!loading && !error ? (
           <div className="overflow-x-auto rounded-2xl border border-slate-200">

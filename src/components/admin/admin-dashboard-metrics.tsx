@@ -26,11 +26,13 @@ function KpiCard({
   value,
   hint,
   icon: Icon,
+  loading,
 }: {
   title: string;
   value: string | number | undefined;
   hint: string;
   icon: typeof Users;
+  loading?: boolean;
 }) {
   return (
     <Card className="rounded-2xl border-slate-200/80 bg-white/90 shadow-sm backdrop-blur">
@@ -40,7 +42,15 @@ function KpiCard({
         </div>
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{title}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value ?? "—"}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
+              </span>
+            ) : (
+              value ?? "—"
+            )}
+          </p>
           <p className="mt-1 text-xs text-slate-500">{hint}</p>
         </div>
       </CardContent>
@@ -51,16 +61,23 @@ function KpiCard({
 export function AdminDashboardMetrics() {
   const [data, setData] = useState<Metrics | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
-      const res = await fetch("/api/admin/metrics", { credentials: "include" });
-      const json = (await res.json()) as Metrics & { error?: string };
-      if (!res.ok) {
-        setError(json.error ?? "Could not load metrics.");
-        return;
+      try {
+        const res = await fetch("/api/admin/metrics", { credentials: "include" });
+        const json = (await res.json()) as Metrics & { error?: string };
+        if (!res.ok) {
+          setError(json.error ?? "Could not load metrics.");
+          return;
+        }
+        setData(json);
+      } catch {
+        setError("Could not load metrics.");
+      } finally {
+        setLoading(false);
       }
-      setData(json);
     })();
   }, []);
 
@@ -78,15 +95,15 @@ export function AdminDashboardMetrics() {
   return (
     <div className="space-y-8">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard title="Total users" value={data?.totalUsers} hint="All roles in the system" icon={Users} />
-        <KpiCard title="Customers" value={data?.customerUsers} hint="Accounts with customer role" icon={User} />
-        <KpiCard title="Avg. satisfaction" value={avg} hint="Mean of all ratings (1–5)" icon={Star} />
-        <KpiCard title="Reports" value={data?.customerReports} hint="Customer feedback & concerns" icon={MessageSquareWarning} />
+        <KpiCard title="Total users" value={data?.totalUsers} hint="All roles in the system" icon={Users} loading={loading} />
+        <KpiCard title="Customers" value={data?.customerUsers} hint="Accounts with customer role" icon={User} loading={loading} />
+        <KpiCard title="Avg. satisfaction" value={avg} hint="Mean of all ratings (1–5)" icon={Star} loading={loading} />
+        <KpiCard title="Reports" value={data?.customerReports} hint="Customer feedback & concerns" icon={MessageSquareWarning} loading={loading} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <KpiCard title="Hairstyles in catalog" value={data?.activeHairstyles} hint="Active entries" icon={Scissors} />
-        <KpiCard title="Face analyses" value={data?.faceAnalyses} hint="Completed analysis runs (usage)" icon={ClipboardList} />
+        <KpiCard title="Hairstyles in catalog" value={data?.activeHairstyles} hint="Active entries" icon={Scissors} loading={loading} />
+        <KpiCard title="Face analyses" value={data?.faceAnalyses} hint="Completed analysis runs (usage)" icon={ClipboardList} loading={loading} />
       </div>
 
       <div>
