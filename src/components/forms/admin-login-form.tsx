@@ -58,6 +58,7 @@ export function AdminLoginForm({ nextPath }: { nextPath?: string }) {
               placeholder="your.name@stylehair.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              disabled={submitting}
             />
           </div>
           {errors.email ? <p className="text-xs text-red-500">{errors.email}</p> : null}
@@ -73,6 +74,7 @@ export function AdminLoginForm({ nextPath }: { nextPath?: string }) {
               placeholder="Enter your password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              disabled={submitting}
             />
             <button type="button" className="absolute right-3 top-3 text-slate-400" onClick={() => setShowPassword((v) => !v)}>
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -83,11 +85,20 @@ export function AdminLoginForm({ nextPath }: { nextPath?: string }) {
       </div>
       {errors.form ? <p className="text-xs text-red-500">{errors.form}</p> : null}
       <Button
+        type="button"
         className="h-12 w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500"
         onClick={() => void handleSubmit()}
         disabled={submitting}
+        aria-busy={submitting}
       >
-        {submitting ? "Entering dashboard..." : "Sign in as admin"}
+        {submitting ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            Entering dashboard...
+          </span>
+        ) : (
+          "Sign in as admin"
+        )}
       </Button>
     </div>
   );
