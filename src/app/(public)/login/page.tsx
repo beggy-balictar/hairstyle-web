@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { Shield } from "lucide-react";
 import { AppShell } from "@/components/shared/app-shell";
@@ -6,6 +7,10 @@ import { AdminLoginForm } from "@/components/forms/admin-login-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
+
+export const metadata: Metadata = {
+  title: "Login | StyleHair",
+};
 
 type Props = {
   searchParams: { tab?: string; next?: string };

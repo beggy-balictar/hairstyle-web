@@ -1,9 +1,14 @@
+import { Metadata } from "next";
 import { SectionHeader } from "@/components/shared/section-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+
+export const metadata: Metadata = {
+  title: "Profile Settings | StyleHair",
+};
 
 export default function CustomerProfilePage() {
   return (

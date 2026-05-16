@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { KeyRound, ShieldCheck, UserPlus } from "lucide-react";
 import { CreateAdminGateway } from "@/components/public/create-admin-gateway";
@@ -6,6 +7,10 @@ import { Brand } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
+
+export const metadata: Metadata = {
+  title: "Create Admin | StyleHair",
+};
 
 export default function CreateAdminHelpPage() {
   return (
