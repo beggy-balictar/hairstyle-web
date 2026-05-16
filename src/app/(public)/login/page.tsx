@@ -6,13 +6,15 @@ import { AdminLoginForm } from "@/components/forms/admin-login-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
+import LoginToast from "../../../components/shared/login-toast";
 
 type Props = {
-  searchParams: { tab?: string; next?: string };
+  searchParams: { tab?: string; next?: string; signedOut?: string };
 };
 
 export default function RoleLoginPage({ searchParams }: Props) {
   const nextPath = searchParams.next?.startsWith("/") ? searchParams.next : undefined;
+  const showSignOutToast = searchParams.signedOut === "1";
   return (
     <AppShell>
       <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
@@ -39,6 +41,7 @@ export default function RoleLoginPage({ searchParams }: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent className="relative space-y-6 p-8 pt-2">
+              <LoginToast show={showSignOutToast} />
               <div className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur">
                 <div className="flex items-start gap-3">
                   <Shield className="mt-0.5 h-5 w-5 shrink-0 text-indigo-200" />

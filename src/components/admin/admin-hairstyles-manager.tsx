@@ -21,6 +21,7 @@ export function AdminHairstylesManager() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [formMsg, setFormMsg] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -81,8 +82,21 @@ export function AdminHairstylesManager() {
     setMaintenanceLevel("");
     setShapes("oval, round, square");
     setFormMsg("Saved.");
+    setToastMessage("Hairstyle Saved!");
     void load();
   }
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   return (
     <div className="space-y-6">
@@ -142,6 +156,11 @@ export function AdminHairstylesManager() {
           ) : null}
         </CardContent>
       </Card>
+      {toastMessage ? (
+        <div className="fixed bottom-6 right-6 z-50 rounded-2xl bg-slate-950 px-4 py-3 text-sm text-white shadow-xl shadow-slate-900/30">
+          {toastMessage}
+        </div>
+      ) : null}
     </div>
   );
 }

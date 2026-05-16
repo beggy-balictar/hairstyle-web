@@ -30,6 +30,7 @@ export function AdminUsersTable() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<UserRow | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,12 +76,25 @@ export function AdminUsersTable() {
       }
       setUsers((prev) => prev.filter((row) => row.id !== pendingDelete.id));
       setPendingDelete(null);
+      setToastMessage("Account Deleted!");
     } catch {
       setError("Network error while deleting account.");
     } finally {
       setDeletingId(null);
     }
   };
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   return (
     <Card className="rounded-3xl border-slate-200 shadow-sm">
@@ -185,6 +199,11 @@ export function AdminUsersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {toastMessage ? (
+        <div className="fixed bottom-6 right-6 z-50 rounded-2xl bg-slate-950 px-4 py-3 text-sm text-white shadow-xl shadow-slate-900/30">
+          {toastMessage}
+        </div>
+      ) : null}
     </Card>
   );
 }
