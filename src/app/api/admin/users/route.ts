@@ -16,6 +16,9 @@ export async function GET(request: Request) {
         role: true,
         status: true,
         createdAt: true,
+        adminProfile: {
+          select: { firstName: true, middleName: true, lastName: true },
+        },
         customerProfile: {
           select: { firstName: true, lastName: true, phone: true },
         },

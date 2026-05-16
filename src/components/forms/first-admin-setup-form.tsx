@@ -2,17 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/lib/routes";
-import { validateEmail } from "@/lib/validators";
+import { validateEmail, validateLettersOnlyName } from "@/lib/validators";
+
+const LETTERS_ONLY_PATTERN = "[A-Za-z]+";
+
+function lettersOnly(value: string) {
+  return value.replace(/[^A-Za-z]/g, "");
+}
 
 export function FirstAdminSetupForm() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [allowed, setAllowed] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -48,6 +57,9 @@ export function FirstAdminSetupForm() {
 
   const handleSubmit = async () => {
     const nextErrors: Record<string, string> = {};
+    if (!validateLettersOnlyName(firstName)) nextErrors.firstName = "First name must contain letters only.";
+    if (!validateLettersOnlyName(middleName)) nextErrors.middleName = "Middle name must contain letters only.";
+    if (!validateLettersOnlyName(lastName)) nextErrors.lastName = "Last name must contain letters only.";
     if (!validateEmail(email)) nextErrors.email = "Enter a valid email.";
     if (!email.toLowerCase().endsWith("@stylehair.com")) {
       nextErrors.email = "Use an @stylehair.com address (e.g. maria@stylehair.com).";
@@ -66,6 +78,9 @@ export function FirstAdminSetupForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          firstName: firstName.trim(),
+          middleName: middleName.trim(),
+          lastName: lastName.trim(),
           email: email.trim().toLowerCase(),
           password,
           confirmPassword,
@@ -114,6 +129,56 @@ export function FirstAdminSetupForm() {
 
       {allowed ? (
         <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="admin-setup-first-name">First name</Label>
+              <div className="relative">
+                <User className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                <Input
+                  id="admin-setup-first-name"
+                  className="h-12 rounded-2xl pl-10"
+                  placeholder="Maria"
+                  value={firstName}
+                  onChange={(e) => setFirstName(lettersOnly(e.target.value))}
+                  pattern={LETTERS_ONLY_PATTERN}
+                  title="Use letters only."
+                  autoComplete="given-name"
+                />
+              </div>
+              {errors.firstName ? <p className="text-xs text-rose-500">{errors.firstName}</p> : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="admin-setup-middle-name">Middle name</Label>
+              <Input
+                id="admin-setup-middle-name"
+                className="h-12 rounded-2xl"
+                placeholder="Santos"
+                value={middleName}
+                onChange={(e) => setMiddleName(lettersOnly(e.target.value))}
+                pattern={LETTERS_ONLY_PATTERN}
+                title="Use letters only."
+                autoComplete="additional-name"
+              />
+              {errors.middleName ? <p className="text-xs text-rose-500">{errors.middleName}</p> : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="admin-setup-last-name">Last name</Label>
+              <Input
+                id="admin-setup-last-name"
+                className="h-12 rounded-2xl"
+                placeholder="Reyes"
+                value={lastName}
+                onChange={(e) => setLastName(lettersOnly(e.target.value))}
+                pattern={LETTERS_ONLY_PATTERN}
+                title="Use letters only."
+                autoComplete="family-name"
+              />
+              {errors.lastName ? <p className="text-xs text-rose-500">{errors.lastName}</p> : null}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="admin-setup-email">Admin email</Label>
             <div className="relative">
