@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { KeyRound } from "lucide-react";
 import { AppShell } from "@/components/shared/app-shell";
@@ -6,6 +7,10 @@ import { FirstAdminSetupForm } from "@/components/forms/first-admin-setup-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
+
+export const metadata: Metadata = {
+  title: "Create Admin | StyleHair",
+};
 
 export default function FirstAdminSetupPage() {
   return (

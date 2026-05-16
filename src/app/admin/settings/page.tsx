@@ -1,8 +1,13 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { SectionHeader } from "@/components/shared/section-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
+
+export const metadata: Metadata = {
+  title: "Settings | StyleHair",
+};
 
 export default function AdminSettingsPage() {
   return (

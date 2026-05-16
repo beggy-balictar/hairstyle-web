@@ -1,5 +1,10 @@
+import { Metadata } from "next";
 import { SectionHeader } from "@/components/shared/section-header";
 import { AdminDashboardMetrics } from "@/components/admin/admin-dashboard-metrics";
+
+export const metadata: Metadata = {
+  title: "Dashboard | StyleHair",
+};
 
 export default function AdminDashboardPage() {
   return (

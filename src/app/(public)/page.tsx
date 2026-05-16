@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { BarChart3, Settings, Shield, Users } from "lucide-react";
 import { AppShell } from "@/components/shared/app-shell";
@@ -5,6 +6,10 @@ import { Brand } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
+
+export const metadata: Metadata = {
+  title: "Dashboard | StyleHair",
+};
 
 export default function LandingPage() {
   return (

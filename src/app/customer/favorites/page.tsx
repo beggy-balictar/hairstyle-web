@@ -1,5 +1,10 @@
+import { Metadata } from "next";
 import { SectionHeader } from "@/components/shared/section-header";
 import { FavoritesList } from "@/components/customer/favorites-list";
+
+export const metadata: Metadata = {
+  title: "Saved Hairstyles | StyleHair",
+};
 
 export default function CustomerFavoritesPage() {
   return (

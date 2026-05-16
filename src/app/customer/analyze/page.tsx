@@ -1,6 +1,11 @@
+import { Metadata } from "next";
 import { SectionHeader } from "@/components/shared/section-header";
 import { QuickActions } from "@/components/customer/quick-actions";
 import { FaceShapeAnalyzer } from "@/components/customer/face-shape-analyzer";
+
+export const metadata: Metadata = {
+  title: "Analyze | StyleHair",
+};
 
 export default function CustomerAnalyzePage() {
   return (
