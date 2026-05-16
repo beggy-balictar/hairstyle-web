@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/lib/routes";
-import { validateEmail } from "@/lib/validators";
+import { validateEmail, validateLettersOnlyName } from "@/lib/validators";
+
+const LETTERS_ONLY_PATTERN = "[A-Za-z]+";
+
+function lettersOnly(value: string) {
+  return value.replace(/[^A-Za-z]/g, "");
+}
 
 export function CreateAdminAccountForm() {
   const router = useRouter();
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,6 +31,9 @@ export function CreateAdminAccountForm() {
   const handleSubmit = async () => {
     setSuccess(null);
     const nextErrors: Record<string, string> = {};
+    if (!validateLettersOnlyName(firstName)) nextErrors.firstName = "First name must contain letters only.";
+    if (!validateLettersOnlyName(middleName)) nextErrors.middleName = "Middle name must contain letters only.";
+    if (!validateLettersOnlyName(lastName)) nextErrors.lastName = "Last name must contain letters only.";
     if (!validateEmail(email)) nextErrors.email = "Enter a valid email.";
     if (!email.toLowerCase().endsWith("@stylehair.com")) {
       nextErrors.email = "Use an @stylehair.com address (e.g. maria@stylehair.com).";
@@ -41,6 +53,9 @@ export function CreateAdminAccountForm() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
+          firstName: firstName.trim(),
+          middleName: middleName.trim(),
+          lastName: lastName.trim(),
           email: email.trim().toLowerCase(),
           password,
           confirmPassword,
@@ -52,6 +67,9 @@ export function CreateAdminAccountForm() {
         return;
       }
       setSuccess(data.message ?? "Administrator created. They can sign in now.");
+      setFirstName("");
+      setMiddleName("");
+      setLastName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
@@ -69,6 +87,56 @@ export function CreateAdminAccountForm() {
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900">{success}</div>
       ) : null}
       {errors.form ? <p className="text-sm text-rose-600">{errors.form}</p> : null}
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="new-admin-first-name">First name</Label>
+          <div className="relative">
+            <User className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+            <Input
+              id="new-admin-first-name"
+              className="h-12 rounded-2xl border-slate-200 bg-white/80 pl-10 shadow-inner shadow-slate-200/40 backdrop-blur"
+              placeholder="Maria"
+              value={firstName}
+              onChange={(e) => setFirstName(lettersOnly(e.target.value))}
+              pattern={LETTERS_ONLY_PATTERN}
+              title="Use letters only."
+              autoComplete="given-name"
+            />
+          </div>
+          {errors.firstName ? <p className="text-xs text-rose-500">{errors.firstName}</p> : null}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="new-admin-middle-name">Middle name</Label>
+          <Input
+            id="new-admin-middle-name"
+            className="h-12 rounded-2xl border-slate-200 bg-white/80 shadow-inner shadow-slate-200/40 backdrop-blur"
+            placeholder="Santos"
+            value={middleName}
+            onChange={(e) => setMiddleName(lettersOnly(e.target.value))}
+            pattern={LETTERS_ONLY_PATTERN}
+            title="Use letters only."
+            autoComplete="additional-name"
+          />
+          {errors.middleName ? <p className="text-xs text-rose-500">{errors.middleName}</p> : null}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="new-admin-last-name">Last name</Label>
+          <Input
+            id="new-admin-last-name"
+            className="h-12 rounded-2xl border-slate-200 bg-white/80 shadow-inner shadow-slate-200/40 backdrop-blur"
+            placeholder="Reyes"
+            value={lastName}
+            onChange={(e) => setLastName(lettersOnly(e.target.value))}
+            pattern={LETTERS_ONLY_PATTERN}
+            title="Use letters only."
+            autoComplete="family-name"
+          />
+          {errors.lastName ? <p className="text-xs text-rose-500">{errors.lastName}</p> : null}
+        </div>
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="new-admin-email">Admin email</Label>

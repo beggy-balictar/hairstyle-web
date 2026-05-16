@@ -20,8 +20,19 @@ type UserRow = {
   role: string;
   status: string;
   createdAt: string;
+  adminProfile: { firstName: string; middleName: string; lastName: string } | null;
   customerProfile: { firstName: string; lastName: string; phone: string | null } | null;
 };
+
+function displayName(user: UserRow) {
+  if (user.adminProfile) {
+    return `${user.adminProfile.firstName} ${user.adminProfile.middleName} ${user.adminProfile.lastName}`;
+  }
+  if (user.customerProfile) {
+    return `${user.customerProfile.firstName} ${user.customerProfile.lastName}`;
+  }
+  return "";
+}
 
 export function AdminUsersTable() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -53,7 +64,7 @@ export function AdminUsersTable() {
     const s = q.trim().toLowerCase();
     if (!s) return users;
     return users.filter((u) => {
-      const name = `${u.customerProfile?.firstName ?? ""} ${u.customerProfile?.lastName ?? ""}`.toLowerCase();
+      const name = displayName(u).toLowerCase();
       return u.email.toLowerCase().includes(s) || name.includes(s);
     });
   }, [users, q]);
@@ -120,11 +131,7 @@ export function AdminUsersTable() {
                   <tr key={u.id} className="border-t border-slate-100">
                     <td className="px-4 py-3">
                       <div className="truncate font-medium text-slate-900">{u.email}</div>
-                      {u.customerProfile ? (
-                        <div className="truncate text-xs text-slate-500">
-                          {u.customerProfile.firstName} {u.customerProfile.lastName}
-                        </div>
-                      ) : null}
+                      {displayName(u) ? <div className="truncate text-xs text-slate-500">{displayName(u)}</div> : null}
                     </td>
                     <td className="px-4 py-3 capitalize">{u.role.toLowerCase()}</td>
                     <td className="px-4 py-3 capitalize">{u.status.toLowerCase()}</td>

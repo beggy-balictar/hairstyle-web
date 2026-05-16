@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { prismaErrorToResponse } from "@/lib/prisma-errors";
 import { requireAdminSession } from "@/lib/require-session";
-import { validateEmail, validatePassword } from "@/lib/validators";
+import { validateEmail, validateLettersOnlyName, validatePassword } from "@/lib/validators";
 
 function isStylehairAdminEmail(email: string) {
   return /^[^\s@]+@stylehair\.com$/i.test(email);
@@ -14,17 +14,43 @@ export async function POST(request: Request) {
   const { error } = await requireAdminSession(request);
   if (error) return error;
 
-  let body: { email?: string; password?: string; confirmPassword?: string };
+  let body: {
+    firstName?: string;
+    middleName?: string;
+    lastName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  };
   try {
-    body = (await request.json()) as { email?: string; password?: string; confirmPassword?: string };
+    body = (await request.json()) as {
+      firstName?: string;
+      middleName?: string;
+      lastName?: string;
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    };
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
+  const firstName = body.firstName?.trim() ?? "";
+  const middleName = body.middleName?.trim() ?? "";
+  const lastName = body.lastName?.trim() ?? "";
   const email = body.email?.trim().toLowerCase() ?? "";
   const password = body.password ?? "";
   const confirmPassword = body.confirmPassword ?? "";
 
+  if (!validateLettersOnlyName(firstName)) {
+    return NextResponse.json({ error: "First name must contain letters only." }, { status: 400 });
+  }
+  if (!validateLettersOnlyName(middleName)) {
+    return NextResponse.json({ error: "Middle name must contain letters only." }, { status: 400 });
+  }
+  if (!validateLettersOnlyName(lastName)) {
+    return NextResponse.json({ error: "Last name must contain letters only." }, { status: 400 });
+  }
   if (!validateEmail(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   }
@@ -55,6 +81,13 @@ export async function POST(request: Request) {
         passwordHash,
         role: UserRole.ADMIN,
         status: UserStatus.ACTIVE,
+        adminProfile: {
+          create: {
+            firstName,
+            middleName,
+            lastName,
+          },
+        },
       },
     });
 
