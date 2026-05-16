@@ -107,10 +107,6 @@ export function AdminLayoutChrome({ children }: { children: ReactNode }) {
             </div>
           </div>
         ) : null}
-
-        <div className="border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur md:hidden">
-          <AdminMobileNav links={adminLinks.map(({ href, label }) => ({ href, label }))} />
-        </div>
         <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 md:px-8">{children}</main>
       </div>
     </div>
