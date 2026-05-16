@@ -36,7 +36,11 @@ export function AdminLoginForm({ nextPath }: { nextPath?: string }) {
         setErrors({ form: data.error ?? "Admin sign-in failed." });
         return;
       }
-      router.push(nextPath ?? ROUTES.adminDashboard);
+
+      const redirectTarget = nextPath ?? ROUTES.adminDashboard;
+      const redirectUrl = new URL(redirectTarget, window.location.origin);
+      redirectUrl.searchParams.set("signedIn", "1");
+      router.push(`${redirectUrl.pathname}${redirectUrl.search}`);
     } catch {
       setErrors({ form: "Network error. Try again." });
     } finally {
