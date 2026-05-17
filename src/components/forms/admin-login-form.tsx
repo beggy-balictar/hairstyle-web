@@ -9,7 +9,11 @@ import { Label } from "@/components/ui/label";
 import { validateEmail } from "@/lib/validators";
 import { ROUTES } from "@/lib/routes";
 
-export function AdminLoginForm({ nextPath }: { nextPath?: string }) {
+interface AdminLoginFormProps {
+  nextPath?: string;
+}
+
+export function AdminLoginForm({ nextPath }: Readonly<AdminLoginFormProps>) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });

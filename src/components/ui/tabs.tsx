@@ -18,6 +18,29 @@ type TabsContextValue = {
   setValue: (value: string) => void;
 };
 
+interface TabsProps {
+  defaultValue: string;
+  className?: string;
+  children: ReactNode;
+}
+
+interface TabsListProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface TabsTriggerProps {
+  value: string;
+  className?: string;
+  children: ReactNode;
+}
+
+interface TabsContentProps {
+  value: string;
+  className?: string;
+  children: ReactNode;
+}
+
 const TabsContext = createContext<TabsContextValue | null>(null);
 
 function useTabsContext() {
@@ -32,11 +55,7 @@ export function Tabs({
   defaultValue,
   className,
   children,
-}: {
-  defaultValue: string;
-  className?: string;
-  children: ReactNode;
-}) {
+}: Readonly<TabsProps>) {
   const [value, setValue] = useState(defaultValue);
   const context = useMemo(() => ({ value, setValue }), [value]);
 
@@ -47,7 +66,7 @@ export function Tabs({
   );
 }
 
-export function TabsList({ className, children }: { className?: string; children: ReactNode }) {
+export function TabsList({ className, children }: Readonly<TabsListProps>) {
   return <div className={cn("inline-flex gap-2", className)}>{children}</div>;
 }
 
@@ -55,11 +74,7 @@ export function TabsTrigger({
   value,
   className,
   children,
-}: {
-  value: string;
-  className?: string;
-  children: ReactNode;
-}) {
+}: Readonly<TabsTriggerProps>) {
   const { value: active, setValue } = useTabsContext();
 
   return (
@@ -81,11 +96,7 @@ export function TabsContent({
   value,
   className,
   children,
-}: {
-  value: string;
-  className?: string;
-  children: ReactNode;
-}) {
+}: Readonly<TabsContentProps>) {
   const { value: active } = useTabsContext();
 
   if (active !== value) {

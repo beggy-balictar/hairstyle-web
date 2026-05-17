@@ -8,6 +8,10 @@ import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
 import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
 import { ROUTES } from "@/lib/routes";
 
+interface AdminLayoutChromeProps {
+  children: ReactNode;
+}
+
 const adminLinks = [
   { href: ROUTES.adminDashboard, label: "Overview", icon: Home },
   { href: ROUTES.adminUsers, label: "Users", icon: Users },
@@ -16,7 +20,7 @@ const adminLinks = [
   { href: ROUTES.adminSettings, label: "Settings", icon: Settings },
 ];
 
-export function AdminLayoutChrome({ children }: { children: ReactNode }) {
+export function AdminLayoutChrome({ children }: Readonly<AdminLayoutChromeProps>) {
   return (
     <div className="min-h-screen bg-[linear-gradient(165deg,#f8fafc_0%,#eef2ff_45%,#faf5ff_100%)] md:grid md:grid-cols-[272px_1fr]">
       <aside className="relative hidden overflow-hidden border-r border-white/50 bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 px-5 py-6 text-white shadow-xl shadow-indigo-950/20 md:block">

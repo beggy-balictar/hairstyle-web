@@ -15,6 +15,42 @@ type DialogContextValue = {
   onOpenChange: (open: boolean) => void;
 };
 
+interface DialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
+}
+
+interface DialogTriggerProps {
+  asChild?: boolean;
+  children: ReactNode;
+}
+
+interface DialogContentProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface DialogHeaderProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface DialogTitleProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface DialogDescriptionProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface DialogFooterProps {
+  className?: string;
+  children: ReactNode;
+}
+
 const DialogContext = createContext<DialogContextValue | null>(null);
 
 function useDialogContext() {
@@ -29,21 +65,14 @@ export function Dialog({
   open,
   onOpenChange,
   children,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  children: ReactNode;
-}) {
+}: Readonly<DialogProps>) {
   return <DialogContext.Provider value={{ open, onOpenChange }}>{children}</DialogContext.Provider>;
 }
 
 export function DialogTrigger({
   asChild,
   children,
-}: {
-  asChild?: boolean;
-  children: ReactNode;
-}) {
+}: Readonly<DialogTriggerProps>) {
   const { onOpenChange } = useDialogContext();
 
   if (asChild && isValidElement(children)) {
@@ -66,10 +95,7 @@ export function DialogTrigger({
 export function DialogContent({
   className,
   children,
-}: {
-  className?: string;
-  children: ReactNode;
-}) {
+}: Readonly<DialogContentProps>) {
   const { open, onOpenChange } = useDialogContext();
 
   if (!open) {
@@ -86,18 +112,18 @@ export function DialogContent({
   );
 }
 
-export function DialogHeader({ className, children }: { className?: string; children: ReactNode }) {
+export function DialogHeader({ className, children }: Readonly<DialogHeaderProps>) {
   return <div className={cn("space-y-2", className)}>{children}</div>;
 }
 
-export function DialogTitle({ className, children }: { className?: string; children: ReactNode }) {
+export function DialogTitle({ className, children }: Readonly<DialogTitleProps>) {
   return <h3 className={cn("text-xl font-semibold text-slate-950", className)}>{children}</h3>;
 }
 
-export function DialogDescription({ className, children }: { className?: string; children: ReactNode }) {
+export function DialogDescription({ className, children }: Readonly<DialogDescriptionProps>) {
   return <p className={cn("text-sm leading-6 text-slate-500", className)}>{children}</p>;
 }
 
-export function DialogFooter({ className, children }: { className?: string; children: ReactNode }) {
+export function DialogFooter({ className, children }: Readonly<DialogFooterProps>) {
   return <div className={cn("mt-5 flex justify-end", className)}>{children}</div>;
 }

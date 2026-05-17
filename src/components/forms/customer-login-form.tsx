@@ -10,7 +10,11 @@ import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/lib/routes";
 import { validateEmail } from "@/lib/validators";
 
-export function CustomerLoginForm({ nextPath }: { nextPath?: string }) {
+interface CustomerLoginFormProps {
+  nextPath?: string;
+}
+
+export function CustomerLoginForm({ nextPath }: Readonly<CustomerLoginFormProps>) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });

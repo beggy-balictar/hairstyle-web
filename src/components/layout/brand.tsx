@@ -1,9 +1,13 @@
 import { Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface BrandProps {
+  inverted?: boolean;
+}
+
 const BRAND_MARK = `StyleH${"\u1D00"}${"\u026A"}R`;
 
-export function Brand({ inverted }: { inverted?: boolean }) {
+export function Brand({ inverted }: Readonly<BrandProps>) {
   return (
     <div className="flex items-center gap-3">
       <div

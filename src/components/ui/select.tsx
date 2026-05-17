@@ -17,6 +17,30 @@ type SelectContextValue = {
   onValueChange: (value: string) => void;
 };
 
+interface SelectProps {
+  value: string;
+  onValueChange: (value: string) => void;
+  children: ReactNode;
+}
+
+interface SelectTriggerProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface SelectValueProps {
+  placeholder?: string;
+}
+
+interface SelectContentProps {
+  children: ReactNode;
+}
+
+interface SelectItemProps {
+  value: string;
+  children: ReactNode;
+}
+
 const SelectContext = createContext<SelectContextValue | null>(null);
 
 function useSelectContext() {
@@ -31,16 +55,12 @@ export function Select({
   value,
   onValueChange,
   children,
-}: {
-  value: string;
-  onValueChange: (value: string) => void;
-  children: ReactNode;
-}) {
+}: Readonly<SelectProps>) {
   const context = useMemo(() => ({ value, onValueChange }), [value, onValueChange]);
   return <SelectContext.Provider value={context}>{children}</SelectContext.Provider>;
 }
 
-export function SelectTrigger({ className, children }: { className?: string; children: ReactNode }) {
+export function SelectTrigger({ className, children }: Readonly<SelectTriggerProps>) {
   const { value, onValueChange } = useSelectContext();
   const content = Children.toArray(children);
   const triggerChild = content.find((child) => isValidElement(child) && child.type === SelectValue) as
@@ -73,14 +93,14 @@ export function SelectTrigger({ className, children }: { className?: string; chi
   );
 }
 
-export function SelectValue({ placeholder }: { placeholder?: string }) {
+export function SelectValue({ placeholder }: Readonly<SelectValueProps>) {
   return <>{placeholder}</>;
 }
 
-export function SelectContent({ children }: { children: ReactNode }) {
+export function SelectContent({ children }: Readonly<SelectContentProps>) {
   return <>{children}</>;
 }
 
-export function SelectItem({ value, children }: { value: string; children: ReactNode }) {
+export function SelectItem({ value, children }: Readonly<SelectItemProps>) {
   return <option value={value}>{children}</option>;
 }
