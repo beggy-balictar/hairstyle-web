@@ -120,7 +120,11 @@ function ChartTooltip({
   );
 }
 
-export function AdminGrowthCharts({ data }: { data: GrowthChartRow[] }) {
+interface AdminGrowthChartsProps {
+  data: GrowthChartRow[];
+}
+
+export function AdminGrowthCharts({ data }: Readonly<AdminGrowthChartsProps>) {
   const satisfactionSeries = buildSatisfactionSeries(data);
   const satSummary = satisfactionPeriodSummary(satisfactionSeries);
 
